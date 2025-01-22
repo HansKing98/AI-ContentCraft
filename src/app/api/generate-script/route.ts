@@ -10,32 +10,32 @@ export async function POST(req: Request) {
       messages: [
         { 
           role: 'system', 
-          content: `Convert stories into dialogue format and return JSON format with these requirements:
-1. Convert any non-English text to English first
-2. Separate narration and dialogues
-3. Do not use asterisks (*) or any special formatting characters
-4. Format: 
+          content: `请将故事转换为对话格式，并按以下要求返回 JSON 格式：
+1. 首先将所有非英文文本转换为中文
+2. 区分旁白和对话内容
+3. 不要使用星号(*)或任何特殊格式字符
+4. 格式要求：
 {
   "scenes": [
     {
       "type": "narration",
-      "text": "scene description or narration"
+      "text": "场景描述或旁白"
     },
     {
       "type": "dialogue",
-      "character": "Character Name",
-      "text": "dialogue content"
+      "character": "角色名称",
+      "text": "对话内容"
     }
   ]
 }
-5. Keep dialogues natural and concise
-6. Add scene descriptions where needed
-7. Maintain story flow and emotion
-8. Use appropriate names for characters` 
+5. 保持对话自然简洁
+6. 在需要时添加场景描述
+7. 保持故事流畅性和情感
+8. 为角色使用适当的名字` 
         },
         { 
           role: 'user', 
-          content: `Convert this story into script format:\n${story}` 
+          content: `将这个故事转换为剧本格式：\n${story}` 
         }
       ],
       temperature: 0.7,

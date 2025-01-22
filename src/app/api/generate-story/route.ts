@@ -10,11 +10,11 @@ export async function POST(req: Request) {
       messages: [
         { 
           role: 'system', 
-          content: 'You are a professional story writer. Create engaging and interesting short stories with good plot development.' 
+          content: '你是一位专业的故事创作者。请创作引人入胜、情节发展合理的短篇故事。' 
         },
         { 
           role: 'user', 
-          content: `Write a short story about "${theme}" in around 200 words` 
+          content: `请以"${theme}"为主题，创作一个大约200字的短篇故事。` 
         }
       ],
     });
