@@ -3,4 +3,11 @@ export interface ScriptSection {
   type: 'narration' | 'dialogue';
   character?: string;
   text: string;
+}
+
+export interface Voice {
+  id: string;
+  name: string;
+  language: string;
+  gender: string;
 } 

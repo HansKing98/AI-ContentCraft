@@ -3,6 +3,9 @@ export interface Voice {
   name: string;
   language: string;
   gender: string;
+  info?: string;
+  purchased?: boolean;
+  instanceId?: string;
 }
 
 export interface ScriptSection {

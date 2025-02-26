@@ -1,17 +1,33 @@
 import { NextResponse } from 'next/server';
-import { openai } from '@/app/utils/api-utils';
+import { openai, handleApiError, formatSuccessResponse } from '@/app/utils/api-utils';
+
+interface ScriptScene {
+  type: 'narration' | 'dialogue';
+  character?: string;
+  text: string;
+  id?: string;
+}
 
 export async function POST(req: Request) {
-  const { story } = await req.json();
-  
   try {
+    const { story } = await req.json();
+    
+    if (!story || typeof story !== 'string') {
+      return NextResponse.json({ 
+        success: false, 
+        error: '请提供有效的故事内容' 
+      }, { status: 400 });
+    }
+
+    console.log(`调用 ARK API 生成脚本，故事长度: ${story.length}`);
+
     const response = await openai.chat.completions.create({
-      model: 'deepseek-chat',
+      model: process.env.AI_MODEL || 'deepseek-r1-distill-qwen-7b-250120',
       messages: [
         { 
           role: 'system', 
           content: `请将故事转换为对话格式，并按以下要求返回 JSON 格式：
-1. 首先将所有非英文文本转换为中文
+1. 请保留原始语言，不要强制翻译
 2. 区分旁白和对话内容
 3. 不要使用星号(*)或任何特殊格式字符
 4. 格式要求：
@@ -31,7 +47,8 @@ export async function POST(req: Request) {
 5. 保持对话自然简洁
 6. 在需要时添加场景描述
 7. 保持故事流畅性和情感
-8. 为角色使用适当的名字` 
+8. 为角色使用适当的名字
+9. 确保返回的是有效的JSON格式` 
         },
         { 
           role: 'user', 
@@ -39,37 +56,53 @@ export async function POST(req: Request) {
         }
       ],
       temperature: 0.7,
-      max_tokens: 2000
+      max_tokens: 2000,
+      response_format: { type: "json_object" }
     });
 
-    const scriptContent = response.choices[0].message.content;
-    let scriptData;
+    if (!response.choices?.[0]?.message?.content) {
+      return NextResponse.json({ 
+        success: false, 
+        error: '生成脚本失败，请稍后再试' 
+      }, { status: 500 });
+    }
 
+    const scriptContent = response.choices[0].message.content;
+    
     try {
-      const jsonMatch = scriptContent.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        scriptData = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error('Invalid script format');
-      }
+      const scriptData = JSON.parse(scriptContent);
 
       if (!scriptData.scenes || !Array.isArray(scriptData.scenes)) {
-        throw new Error('Invalid script structure');
+        return NextResponse.json({ 
+          success: false, 
+          error: '脚本结构无效' 
+        }, { status: 500 });
       }
 
-      scriptData.scenes = scriptData.scenes.map(scene => ({
-        ...scene,
-        text: scene.text.replace(/\*/g, ''),
+      // 清理脚本数据，移除特殊字符并添加ID
+      const cleanedScenes = scriptData.scenes.map((scene: ScriptScene, index: number) => ({
+        type: scene.type,
+        text: scene.text?.replace(/\*/g, '') || '',
+        id: `section-${index}`,
         ...(scene.character && { character: scene.character.replace(/\*/g, '') })
       }));
 
-      return NextResponse.json({ success: true, scenes: scriptData.scenes });
+      return NextResponse.json(formatSuccessResponse({
+        scenes: cleanedScenes
+      }));
       
     } catch (error) {
-      throw new Error('Failed to parse script format');
+      console.error('脚本解析错误:', error);
+      return NextResponse.json({ 
+        success: false, 
+        error: '脚本格式解析失败' 
+      }, { status: 500 });
     }
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : '未知错误';
-    return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
+  } catch (error) {
+    console.error('脚本生成错误:', error);
+    return NextResponse.json(
+      handleApiError(error), 
+      { status: 500 }
+    );
   }
 } 
