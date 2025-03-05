@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react'
+import Link from 'next/link'
 import StoryPage from '@/components/pages/StoryPage'
 import SimpleTTSPage from '@/components/pages/SimpleTTSPage'
 import MultiVoicePage from '@/components/pages/MultiVoicePage'
@@ -24,9 +25,18 @@ export default function Home() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">AI内容创作工具</h2>
-        <p className="text-lg text-gray-600">选择工具，开始创作您的内容</p>
+      <div className="mb-8 flex justify-between items-center">
+        <div>
+          <h2 className="text-3xl font-bold text-gray-800 mb-2">AI内容创作工具</h2>
+          <p className="text-lg text-gray-600">选择工具，开始创作您的内容</p>
+        </div>
+        <Link 
+          href="/ui" 
+          className="px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-sm transition-colors flex items-center"
+        >
+          <span className="mr-2">🎨</span>
+          <span>UI原型展示</span>
+        </Link>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
